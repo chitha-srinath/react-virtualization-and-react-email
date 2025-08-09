@@ -1,33 +1,12 @@
-import { AlertTriangle, RefreshCw, Copy, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
-interface EnvironmentErrorProps {
-  error?: string;
-}
-
-function EnvironmentError({ error }: EnvironmentErrorProps) {
-  const [copied, setCopied] = useState(false);
-
-  const envTemplate = `VITE_API_BASEURL=http://localhost:3000
-VITE_API_URL=http://localhost:3000/api
-VITE_SECRET_KEY=your-secret-key-here`;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(envTemplate);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
+function EnvironmentError() {
   const handleRefresh = () => {
     window.location.reload();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-mesh relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-mesh relative overflow-hidden bg-amber-200">
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-gradient-subtle opacity-50" />
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
@@ -37,15 +16,15 @@ VITE_SECRET_KEY=your-secret-key-here`;
         <div className="max-w-2xl w-full bg-card/80 backdrop-blur-xl border border-border rounded-xl shadow-lg animate-slide-up">
           <div className="p-8 space-y-8">
             {/* Header */}
-            <div className="text-center space-y-4">
-              <div className="relative mx-auto w-24 h-24 mb-6 flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <div className="relative mx-auto w-24 flex items-center justify-center">
                 <div className="w-full h-full bg-destructive/10 rounded-2xl flex items-center justify-center shadow-error">
                   <AlertTriangle className="w-12 h-12 text-destructive animate-bounce" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold bg-gradient-error bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-error bg-clip-text">
                   Environment Setup Required
                 </h1>
                 <p className="text-muted-foreground text-lg">
@@ -56,7 +35,7 @@ VITE_SECRET_KEY=your-secret-key-here`;
             </div>
 
             {/* Error details */}
-            {error && (
+            {/* {error && (
               <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 animate-fade-in">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
@@ -70,7 +49,7 @@ VITE_SECRET_KEY=your-secret-key-here`;
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Instructions */}
             <div className="space-y-6">
@@ -88,7 +67,7 @@ VITE_SECRET_KEY=your-secret-key-here`;
               </div>
 
               {/* Environment template */}
-              <div className="relative group">
+              {/* <div className="relative group">
                 <div className="bg-muted/50 border border-border rounded-xl p-4 font-mono text-sm">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -115,7 +94,7 @@ VITE_SECRET_KEY=your-secret-key-here`;
                     {envTemplate}
                   </pre>
                 </div>
-              </div>
+              </div> */}
 
               {/* Steps */}
               <div className="grid gap-4">

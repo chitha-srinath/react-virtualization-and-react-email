@@ -5,7 +5,7 @@ import { envResult } from "./utils/env";
 function App() {
   // Check if environment validation failed
   if (!envResult.success) {
-    return <EnvironmentError error={envResult.error} />;
+    return <EnvironmentError />;
   }
 
   return (
