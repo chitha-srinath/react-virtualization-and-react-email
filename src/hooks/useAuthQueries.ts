@@ -5,8 +5,51 @@ import {
   accessTokenAtom,
   userAtom,
   isAuthenticatedAtom,
+  authInitializedAtom,
 } from "../atoms/auth.atom";
 import { api } from "../services/api";
+
+// Hook to initialize auth state on app load
+export const useInitializeAuth = () => {
+  const setAccessToken = useSetAtom(accessTokenAtom);
+  const setUser = useSetAtom(userAtom);
+  const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
+  const setAuthInitialized = useSetAtom(authInitializedAtom);
+
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        // Try to refresh token to get access token
+        const refreshResponse = await api.post("/auth/refresh");
+        const { accessToken } = refreshResponse.data;
+        
+        if (accessToken) {
+          setAccessToken(accessToken);
+          
+          // Fetch user data with the new access token
+          const userResponse = await api.get("/auth/me");
+          return { accessToken, user: userResponse.data };
+        }
+        
+        return null;
+      } catch (error) {
+        // No valid refresh token or other error
+        return null;
+      }
+    },
+    onSuccess: (data) => {
+      if (data) {
+        setAccessToken(data.accessToken);
+        setUser(data.user);
+        setIsAuthenticated(true);
+      }
+      setAuthInitialized(true);
+    },
+    onError: () => {
+      setAuthInitialized(true);
+    },
+  });
+};
 
 // Custom hook for fetching user data
 export const useUser = () => {

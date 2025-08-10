@@ -1,6 +1,7 @@
 import AppRoutes from "./routes";
 import EnvironmentError from "./Pages/EnvironmentError";
 import { envResult } from "./utils/env";
+import { AuthInitializer } from "./components/AuthInitializer";
 
 function App() {
   // Check if environment validation failed
@@ -9,9 +10,9 @@ function App() {
   }
 
   return (
-    <>
+    <AuthInitializer>
       <AppRoutes />
-    </>
+    </AuthInitializer>
   );
 }
 
