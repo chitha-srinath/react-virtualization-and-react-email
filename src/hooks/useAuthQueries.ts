@@ -20,7 +20,7 @@ export const useInitializeAuth = () => {
     mutationFn: async () => {
       try {
         // Try to refresh token to get access token
-        const refreshResponse = await api.post("/auth/refresh");
+        const refreshResponse = await api.get("/auth/refresh");
         const { accessToken } = refreshResponse.data;
 
         if (accessToken) {

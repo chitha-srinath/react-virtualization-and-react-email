@@ -66,9 +66,8 @@ api.interceptors.request.use(async (reqConfig) => {
     isRefreshing = true;
 
     try {
-      const response = await axios.post(
+      const response = await axios.get(
         `${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/auth/refresh`,
-        {},
         { withCredentials: true }
       );
 
