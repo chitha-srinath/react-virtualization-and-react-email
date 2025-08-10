@@ -1,26 +1,29 @@
-import { Navigate } from "react-router";
 import React from "react";
+import { Navigate, Outlet } from "react-router";
+import { useAtomValue } from "jotai";
+import { isAuthenticatedAtom } from "../atoms/auth.atom";
 
-export function AuthWrapper({ children }: { children: React.ReactNode }) {
-  const auth = true;
+interface ProtectedRouteProps {
+  children?: React.ReactNode;
+}
 
-  if (!auth) {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const isAuthenticated = useAtomValue(isAuthenticatedAtom);
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
-}
+  // If used as a layout route, render Outlet; otherwise render children
+  return children ? <>{children}</> : <Outlet />;
+};
 
-// Updated wrapper components for v7
-// export function ProtectedRoute({ children }: { children: React.ReactNode }}) {
-//   const auth = true;
-//   return auth ? children : <Navigate to="/login" replace />;
-// }
+export const RedirectAuthenticatedUser: React.FC = () => {
+  const isAuthenticated = useAtomValue(isAuthenticatedAtom);
 
-// function RedirectAuthenticatedUser() {
-//   const auth = true;
-//   if (auth) {
-//     return <Navigate to="/home" replace />;
-//   }
-//   return <Outlet />;
-// }
+  if (isAuthenticated) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return <Outlet />;
+};
