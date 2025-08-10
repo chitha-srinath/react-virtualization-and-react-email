@@ -1,6 +1,5 @@
 // atoms/auth.atom.ts
 import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
 
 export interface User {
   userId: string;

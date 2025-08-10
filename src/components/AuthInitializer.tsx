@@ -7,7 +7,9 @@ interface AuthInitializerProps {
   children: React.ReactNode;
 }
 
-export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) => {
+export const AuthInitializer: React.FC<AuthInitializerProps> = ({
+  children,
+}) => {
   const authInitialized = useAtomValue(authInitializedAtom);
   const initializeAuth = useInitializeAuth();
 

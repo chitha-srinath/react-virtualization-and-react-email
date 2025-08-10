@@ -22,17 +22,18 @@ export const useInitializeAuth = () => {
         // Try to refresh token to get access token
         const refreshResponse = await api.post("/auth/refresh");
         const { accessToken } = refreshResponse.data;
-        
+
         if (accessToken) {
           setAccessToken(accessToken);
-          
+
           // Fetch user data with the new access token
           const userResponse = await api.get("/auth/me");
           return { accessToken, user: userResponse.data };
         }
-        
+
         return null;
-      } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error: unknown) {
         // No valid refresh token or other error
         return null;
       }
