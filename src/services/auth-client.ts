@@ -7,6 +7,7 @@ export async function getAccessToken() {
       withCredentials: true,
     });
     store.set(accessTokenAtom, data.accessToken);
+    return data.accessToken;
   } catch (err) {
     console.error(err);
     store.set(accessTokenAtom, null);
@@ -20,6 +21,7 @@ export async function login(payload: { email: string; password: string }) {
       payload
     );
     store.set(accessTokenAtom, data.accessToken);
+    return data.accessToken;
   } catch (err) {
     console.error(err);
     store.set(accessTokenAtom, null);

@@ -1,7 +1,5 @@
-// hooks/index.ts
-export { useAuth } from "./useAuth";
 export {
-  useUser,
+  useFetchUser,
   useLogin,
   useLogout,
   useInitializeAuth,

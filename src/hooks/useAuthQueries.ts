@@ -1,71 +1,48 @@
 // hooks/useAuthQueries.ts
-import { useAtom, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   accessTokenAtom,
   userAtom,
   isAuthenticatedAtom,
-  authInitializedAtom,
+  store,
 } from "../atoms/auth.atom";
 import { api } from "../services/api";
+import axios from "axios";
+import { env } from "../utils/env";
 
 // Hook to initialize auth state on app load
 export const useInitializeAuth = () => {
-  const setAccessToken = useSetAtom(accessTokenAtom);
-  const setUser = useSetAtom(userAtom);
-  const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
-  const setAuthInitialized = useSetAtom(authInitializedAtom);
-
-  return useMutation({
-    mutationFn: async () => {
-      try {
-        // Try to refresh token to get access token
-        const refreshResponse = await api.get("/auth/refresh");
-        const { accessToken } = refreshResponse.data;
-
-        if (accessToken) {
-          setAccessToken(accessToken);
-
-          // Fetch user data with the new access token
-          const userResponse = await api.get("/auth/me");
-          return { accessToken, user: userResponse.data };
+  return useQuery({
+    queryKey: ["refresh"],
+    queryFn: async () => {
+      const { data } = await axios.get<{ accessToken: string }>(
+        `${env?.VITE_API_URL}refresh`,
+        {
+          withCredentials: true,
         }
-
-        return null;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error: unknown) {
-        // No valid refresh token or other error
-        return null;
-      }
+      );
+      store.set(accessTokenAtom, data.accessToken);
     },
-    onSuccess: (data) => {
-      if (data) {
-        setAccessToken(data.accessToken);
-        setUser(data.user);
-        setIsAuthenticated(true);
-      }
-      setAuthInitialized(true);
-    },
-    onError: () => {
-      setAuthInitialized(true);
-    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 0,
+    refetchOnWindowFocus: false,
   });
 };
 
 // Custom hook for fetching user data
-export const useUser = () => {
-  const [accessToken] = useAtom(accessTokenAtom);
+export const useFetchUser = () => {
+  const accessToken = useAtomValue(accessTokenAtom);
 
   return useQuery({
     queryKey: ["user", accessToken],
     queryFn: async () => {
       if (!accessToken) return null;
-      const res = await api.get("/auth/me");
+      const res = await api.get("/auth/getUserInfo");
       return res.data;
     },
     enabled: !!accessToken, // Only run query when we have an access token
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
   });
 };
 
@@ -84,7 +61,10 @@ export const useLogin = () => {
       email: string;
       password: string;
     }) => {
-      const res = await api.post("/auth/login", { email, password });
+      const res = await axios.post(`${env?.VITE_API_URL}login`, {
+        email,
+        password,
+      });
       return res.data;
     },
     onSuccess: (data) => {
@@ -120,7 +100,7 @@ export const useRegister = () => {
       password: string;
       confirmPassword: string;
     }) => {
-      const res = await api.post("/auth/register", {
+      const res = await axios.post("/auth/register", {
         name,
         email,
         password,
@@ -153,7 +133,7 @@ export const useLogout = () => {
     mutationFn: async () => {
       // Call logout endpoint if you have one
       try {
-        await api.post("/auth/logout");
+        await api.get("/auth/logout");
       } catch (error) {
         // Even if logout API fails, we still want to clear local state
         console.warn("Logout API call failed:", error);

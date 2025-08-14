@@ -1,8 +1,8 @@
-import { useUser } from "../hooks/useAuthQueries";
+import { useFetchUser } from "../hooks/useAuthQueries";
 import { useLogout } from "../hooks/useAuthQueries";
 
 function Home() {
-  const { data: user, isLoading, error } = useUser();
+  const { data: user, isLoading, error } = useFetchUser();
   const logoutMutation = useLogout();
 
   const handleLogout = () => {
