@@ -1,5 +1,5 @@
 // atoms/auth.atom.ts
-import { atom } from "jotai";
+import { atom, getDefaultStore } from "jotai";
 
 export interface User {
   userId: string;
@@ -7,6 +7,8 @@ export interface User {
   email: string;
   role: "admin" | "user";
 }
+
+export const store = getDefaultStore();
 
 export const accessTokenAtom = atom<string | null>(null);
 // Remove refresh token atom since it's handled by server cookies
