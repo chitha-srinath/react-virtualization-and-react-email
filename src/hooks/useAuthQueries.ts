@@ -16,13 +16,13 @@ export const useInitializeAuth = () => {
   return useQuery({
     queryKey: ["refresh"],
     queryFn: async () => {
-      const { data } = await axios.get<{ accessToken: string }>(
-        `${env?.VITE_API_URL}refresh`,
+      const { data } = await axios.get<{ token: string }>(
+        `${env?.VITE_API_URL}auth/access-token`,
         {
           withCredentials: true,
         }
       );
-      store.set(accessTokenAtom, data.accessToken);
+      store.set(accessTokenAtom, data.token);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 0,
@@ -61,14 +61,14 @@ export const useLogin = () => {
       email: string;
       password: string;
     }) => {
-      const res = await axios.post(`${env?.VITE_API_URL}login`, {
+      const res = await axios.post(`${env?.VITE_API_URL}auth/login`, {
         email,
         password,
       });
       return res.data;
     },
     onSuccess: (data) => {
-      setAccessToken(data.accessToken);
+      setAccessToken(data.data.token);
       setUser(data.user);
       setIsAuthenticated(true);
       // Invalidate and refetch any user-related queries

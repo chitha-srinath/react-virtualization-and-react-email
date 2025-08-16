@@ -5,10 +5,7 @@ import About from "./Pages/About";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import NotFound from "./Pages/NotFound";
-import {
-  ProtectedRoute,
-  RedirectAuthenticatedUser,
-} from "./Wrapper/Auth-Wrapper";
+import { AuthRoute, ProtectedRoute } from "./Wrapper/Auth-Wrapper";
 
 // Route configuration for better maintainability
 const ROUTES = {
@@ -28,7 +25,7 @@ const AppRoutes: React.FC = () => {
       </Route>
 
       {/* Public Routes - Redirect if already authenticated */}
-      <Route element={<RedirectAuthenticatedUser />}>
+      <Route element={<AuthRoute />}>
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
       </Route>
