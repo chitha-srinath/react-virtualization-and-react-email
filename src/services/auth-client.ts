@@ -1,27 +1,43 @@
 import axios from "axios";
-import { accessTokenAtom, store } from "../atoms/auth.atom";
+import {
+  accessTokenAtom,
+  isAuthenticatedAtom,
+  store,
+  userAtom,
+} from "../atoms/auth.atom";
+import { env } from "../utils/env";
 
 export async function getAccessToken() {
   try {
-    const { data } = await axios.get<{ accessToken: string }>("/api/refresh", {
-      withCredentials: true,
-    });
-    store.set(accessTokenAtom, data.accessToken);
-    return data.accessToken;
-  } catch (err) {
-    console.error(err);
+    const { data } = await axios.get<{ token: string }>(
+      `${env?.VITE_API_URL}auth/access-token`,
+      {
+        withCredentials: true,
+      }
+    );
+
+    store.set(accessTokenAtom, data.token);
+    return data.token;
+  } catch (error) {
+    console.error(error);
     store.set(accessTokenAtom, null);
+    store.set(isAuthenticatedAtom, false);
+    store.set(userAtom, null);
+    return null;
   }
 }
 
 export async function login(payload: { email: string; password: string }) {
   try {
-    const { data } = await axios.post<{ accessToken: string }>(
-      "/api/login",
-      payload
+    const { data } = await axios.post<{ token: string }>(
+      `${env?.VITE_API_URL}auth/login`,
+      payload,
+      {
+        withCredentials: true,
+      }
     );
-    store.set(accessTokenAtom, data.accessToken);
-    return data.accessToken;
+    store.set(accessTokenAtom, data.token);
+    return data.token;
   } catch (err) {
     console.error(err);
     store.set(accessTokenAtom, null);
