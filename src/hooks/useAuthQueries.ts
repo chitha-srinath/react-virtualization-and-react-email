@@ -38,8 +38,8 @@ export const useFetchUser = () => {
     queryKey: ["user", accessToken],
     queryFn: async () => {
       if (!accessToken) return null;
-      const res = await api.get("/auth/getUserInfo");
-      return res.data;
+      const { data } = await api.get("/auth/user-details");
+      return data.data;
     },
     enabled: !!accessToken, // Only run query when we have an access token
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -61,10 +61,16 @@ export const useLogin = () => {
       email: string;
       password: string;
     }) => {
-      const res = await axios.post(`${env?.VITE_API_URL}auth/login`, {
-        email,
-        password,
-      });
+      const res = await axios.post(
+        `${env?.VITE_API_URL}auth/login`,
+        {
+          email,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
       return res.data;
     },
     onSuccess: (data) => {
@@ -133,7 +139,7 @@ export const useLogout = () => {
     mutationFn: async () => {
       // Call logout endpoint if you have one
       try {
-        await api.get("/auth/logout");
+        await api.get("/auth/logout", { withCredentials: true });
       } catch (error) {
         // Even if logout API fails, we still want to clear local state
         console.warn("Logout API call failed:", error);

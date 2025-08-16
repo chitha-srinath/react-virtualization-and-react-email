@@ -51,13 +51,15 @@ function Home() {
                     <label className="block text-sm font-medium text-gray-700">
                       Name
                     </label>
-                    <p className="mt-1 text-sm text-gray-900">{user.name}</p>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {user?.username}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Email
                     </label>
-                    <p className="mt-1 text-sm text-gray-900">{user.email}</p>
+                    <p className="mt-1 text-sm text-gray-900">{user?.email}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -71,7 +73,7 @@ function Home() {
                     <label className="block text-sm font-medium text-gray-700">
                       User ID
                     </label>
-                    <p className="mt-1 text-sm text-gray-900">{user.userId}</p>
+                    <p className="mt-1 text-sm text-gray-900">{user.id}</p>
                   </div>
                 </div>
               </div>
