@@ -1,11 +1,55 @@
 import { useFormik } from "formik";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
+import { useEffect, useState } from "react";
+import { SiGoogle } from "react-icons/si";
 import { useLogin } from "../hooks/useAuthQueries";
 import { loginSchema, type LoginFormData } from "../utils/validation";
 import { toFormikValidationSchema } from "../utils/zod-formik-adapter";
+import { getApiUrl, ensureTrailingSlash } from "../utils/env";
+import { ErrorAlert } from "../Components/ErrorAlert";
 
 function Login() {
   const loginMutation = useLogin();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [oauthError, setOauthError] = useState<string | null>(null);
+
+  const apiUrl = getApiUrl();
+  const oauthHref = apiUrl
+    ? `${ensureTrailingSlash(apiUrl)}auth/google`
+    : undefined;
+
+  const isOAuthConfigured = Boolean(oauthHref);
+  const configError = !isOAuthConfigured
+    ? "API URL is not configured. Please check your environment configuration."
+    : null;
+
+  const messageMap: Record<string, string> = {
+    access_denied: "You cancelled Google sign-in.",
+    timeout: "Google sign-in timed out. Please try again.",
+    no_email:
+      "Email access is required for Google Sign-In. Please try again and grant email access.",
+  };
+
+  const oauthFailed = searchParams.get("oauth_failed");
+  useEffect(() => {
+    if (!oauthFailed) return;
+    const isKnown = oauthFailed in messageMap;
+    const message = isKnown
+      ? messageMap[oauthFailed]
+      : "An error occurred during Google Sign-In. Please try again.";
+    setOauthError(message);
+    if (!isKnown && import.meta.env.DEV) {
+      console.warn("Unknown oauth_failed:", oauthFailed);
+    }
+    setSearchParams(
+      (prev: URLSearchParams) => {
+        const next = new URLSearchParams(prev);
+        next.delete("oauth_failed");
+        return next;
+      },
+      { replace: true }
+    );
+  }, [oauthFailed, setSearchParams]);
 
   const formik = useFormik<LoginFormData>({
     initialValues: {
@@ -34,6 +78,48 @@ function Login() {
               create a new account
             </Link>
           </p>
+        </div>
+
+        {/* OAuth Error Display */}
+        {oauthError && <ErrorAlert>{oauthError}</ErrorAlert>}
+
+        {/* Configuration Error Display (development only) */}
+        {import.meta.env.DEV && configError && (
+          <ErrorAlert>{configError}</ErrorAlert>
+        )}
+
+        {/* Google Sign-in Button */}
+        {isOAuthConfigured ? (
+          <a
+            href={oauthHref}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            aria-label="Sign in with Google"
+          >
+            <SiGoogle className="h-5 w-5" aria-hidden="true" />
+            Sign in with Google
+          </a>
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Google sign-in is not configured"
+          >
+            <SiGoogle className="h-5 w-5" aria-hidden="true" />
+            Sign in with Google
+          </button>
+        )}
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-gray-50 text-gray-500">
+              Or continue with email
+            </span>
+          </div>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={formik.handleSubmit}>
@@ -103,9 +189,9 @@ function Login() {
 
           {/* Error Display */}
           {loginMutation.error && (
-            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md">
+            <ErrorAlert>
               {loginMutation.error.message || "Login failed. Please try again."}
-            </div>
+            </ErrorAlert>
           )}
 
           {/* Submit Button */}

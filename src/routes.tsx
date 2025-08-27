@@ -5,15 +5,10 @@ import About from "./Pages/About";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import NotFound from "./Pages/NotFound";
+import Dashboard from "./Pages/Dashboard";
 import { AuthRoute, ProtectedRoute } from "./Wrapper/Auth-Wrapper";
 
-// Route configuration for better maintainability
-const ROUTES = {
-  HOME: "/",
-  ABOUT: "/about",
-  LOGIN: "/login",
-  REGISTER: "/register",
-} as const;
+import { ROUTES } from "./constants/routes";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -29,6 +24,9 @@ const AppRoutes: React.FC = () => {
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
       </Route>
+
+      {/* OAuth callback route - Public, no auth check needed */}
+      <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
 
       {/* 404 - Catch all unmatched routes */}
       <Route path="*" element={<NotFound />} />
