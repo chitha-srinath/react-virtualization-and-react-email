@@ -5,7 +5,6 @@ import {
   accessTokenAtom,
   userAtom,
   isAuthenticatedAtom,
-  store,
 } from "../atoms/auth.atom";
 import { api } from "../services/api";
 import axios from "axios";
@@ -13,6 +12,7 @@ import { env } from "../utils/env";
 
 // Hook to initialize auth state on app load
 export const useInitializeAuth = () => {
+  const setAccessToken = useSetAtom(accessTokenAtom);
   return useQuery({
     queryKey: ["refresh"],
     queryFn: async () => {
@@ -22,11 +22,58 @@ export const useInitializeAuth = () => {
           withCredentials: true,
         }
       );
-      store.set(accessTokenAtom, data.token);
+      setAccessToken(data.token);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 0,
     refetchOnWindowFocus: false,
+  });
+};
+
+// Hook to verify a specific token via API call
+export const useVerifyToken = (token: string | null) => {
+  const setAccessToken = useSetAtom(accessTokenAtom);
+  const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
+  const setUser = useSetAtom(userAtom);
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey: ["verifyToken", token],
+    queryFn: async () => {
+      if (!token) return null;
+      const { data } = await axios.get(
+        `${env?.VITE_API_URL}auth/verify-token`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // If verification successful, update the atoms
+      if (data.success && data.data) {
+        setAccessToken(token);
+        setIsAuthenticated(true);
+
+        // If user data is returned, update user atom
+        if (data.data.user) {
+          setUser(data.data.user);
+        }
+
+        // Invalidate related queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ["user"] });
+        queryClient.invalidateQueries({ queryKey: ["checkToken"] });
+      }
+
+      // Return the response data for the component to use
+      return data;
+    },
+    enabled: !!token, // Only run when we have a token
+    staleTime: 1 * 60 * 1000, // 1 minute - cache verification results
+    retry: 1, // Only retry once for verification to avoid excessive requests
+    refetchOnWindowFocus: false, // Don't refetch on window focus for verification
+    refetchOnReconnect: true, // Refetch when network reconnects
   });
 };
 

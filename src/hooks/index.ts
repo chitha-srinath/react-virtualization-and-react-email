@@ -3,4 +3,5 @@ export {
   useLogin,
   useLogout,
   useInitializeAuth,
+  useVerifyToken,
 } from "./useAuthQueries";
