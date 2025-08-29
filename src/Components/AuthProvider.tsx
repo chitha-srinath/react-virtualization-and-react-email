@@ -5,7 +5,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const { isLoading } = useInitializeAuth();
+  const { isLoading, error } = useInitializeAuth();
 
   // Show loading screen while initializing auth
   if (isLoading) {
@@ -17,6 +17,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         </div>
       </div>
     );
+  }
+
+  // If there's an error, still render children (auth state is cleared in the hook)
+  if (error) {
+    console.warn("Auth initialization failed:", error);
   }
 
   return <>{children}</>;

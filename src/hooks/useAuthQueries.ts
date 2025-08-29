@@ -9,23 +9,42 @@ import {
 import { api } from "../services/api";
 import axios from "axios";
 import { env } from "../utils/env";
+import type {
+  TokenVerificationResponse,
+  RefreshTokenResponse,
+} from "../types/auth";
 
 // Hook to initialize auth state on app load
 export const useInitializeAuth = () => {
   const setAccessToken = useSetAtom(accessTokenAtom);
-  return useQuery({
+  const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
+  return useQuery<RefreshTokenResponse | null>({
     queryKey: ["refresh"],
     queryFn: async () => {
-      const { data } = await axios.get<{ token: string }>(
-        `${env?.VITE_API_URL}auth/access-token`,
-        {
-          withCredentials: true,
-        }
-      );
-      setAccessToken(data.token);
+      try {
+        const { data } = await axios.get<RefreshTokenResponse>(
+          `${env?.VITE_API_URL}auth/access-token`,
+          {
+            withCredentials: true,
+          }
+        );
+        setAccessToken(data.token);
+        setIsAuthenticated(true); // Set authenticated state when token is retrieved
+        return data;
+      } catch (error) {
+        // If token retrieval fails, ensure auth state is cleared
+        setAccessToken(null);
+        setIsAuthenticated(false);
+        // Don't throw error in development mode when backend is not available
+        console.warn(
+          "Auth initialization failed (this is normal in development without backend):",
+          error
+        );
+        return null;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 0,
+    retry: 0, // Don't retry in development mode
     refetchOnWindowFocus: false,
   });
 };
@@ -37,43 +56,52 @@ export const useVerifyToken = (token: string | null) => {
   const setUser = useSetAtom(userAtom);
   const queryClient = useQueryClient();
 
-  return useQuery({
+  return useQuery<TokenVerificationResponse | null>({
     queryKey: ["verifyToken", token],
-    queryFn: async () => {
+    queryFn: async (): Promise<TokenVerificationResponse | null> => {
       if (!token) return null;
-      const { data } = await axios.get(
-        `${env?.VITE_API_URL}auth/verify-token`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+
+      try {
+        const { data } = await axios.get<TokenVerificationResponse>(
+          `${env?.VITE_API_URL}auth/verify-access-token`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // If verification successful, update the atoms
+        if (!data.error) {
+          setAccessToken(token);
+          setIsAuthenticated(true);
+
+          // If user data is returned, update user atom
+          if (data.data?.user) {
+            setUser(data.data.user);
+          }
+
+          // Invalidate related queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ["user"] });
+          queryClient.invalidateQueries({ queryKey: ["checkToken"] });
         }
-      );
 
-      // If verification successful, update the atoms
-      if (data.success && data.data) {
-        setAccessToken(token);
-        setIsAuthenticated(true);
-
-        // If user data is returned, update user atom
-        if (data.data.user) {
-          setUser(data.data.user);
-        }
-
-        // Invalidate related queries to refresh data
-        queryClient.invalidateQueries({ queryKey: ["user"] });
-        queryClient.invalidateQueries({ queryKey: ["checkToken"] });
+        return data;
+      } catch (error) {
+        // In development mode without backend, treat as invalid token
+        console.warn(
+          "Token verification failed (backend not available):",
+          error
+        );
+        return { error: true, message: "Backend not available" };
       }
-
-      // Return the response data for the component to use
-      return data;
     },
     enabled: !!token, // Only run when we have a token
     staleTime: 1 * 60 * 1000, // 1 minute - cache verification results
-    retry: 1, // Only retry once for verification to avoid excessive requests
+    retry: 0, // Don't retry in development mode
     refetchOnWindowFocus: false, // Don't refetch on window focus for verification
-    refetchOnReconnect: true, // Refetch when network reconnects
+    refetchOnReconnect: false, // Don't refetch when network reconnects in dev mode
   });
 };
 

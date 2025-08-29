@@ -1,12 +1,6 @@
 // atoms/auth.atom.ts
 import { atom, getDefaultStore } from "jotai";
-
-export interface User {
-  userId: string;
-  name: string;
-  email: string;
-  role: "admin" | "user";
-}
+import type { User } from "../types/auth";
 
 export const store = getDefaultStore();
 
