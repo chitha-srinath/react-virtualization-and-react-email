@@ -35,11 +35,3 @@ function parseEnv(): EnvResult {
 
 export const envResult = parseEnv();
 export const env = envResult.data;
-
-export const ensureTrailingSlash = (u?: string) =>
-  !u ? u : u.endsWith("/") ? u : `${u}/`;
-
-export function getApiUrl(): string | undefined {
-  if (envResult.success) return env!.VITE_API_URL;
-  return import.meta.env.VITE_API_URL;
-}

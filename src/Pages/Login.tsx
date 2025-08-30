@@ -5,7 +5,7 @@ import { SiGoogle } from "react-icons/si";
 import { useLogin } from "../hooks/useAuthQueries";
 import { loginSchema, type LoginFormData } from "../utils/validation";
 import { toFormikValidationSchema } from "../utils/zod-formik-adapter";
-import { getApiUrl, ensureTrailingSlash } from "../utils/env";
+import {  env } from "../utils/env";
 import { ErrorAlert } from "../Components/ErrorAlert";
 
 function Login() {
@@ -13,11 +13,8 @@ function Login() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [oauthError, setOauthError] = useState<string | null>(null);
 
-  const apiUrl = getApiUrl();
-  const oauthHref = apiUrl
-    ? `${ensureTrailingSlash(apiUrl)}auth/google`
-    : undefined;
-
+  const oauthHref = `${env?.VITE_API_URL}auth/google`
+   
   const isOAuthConfigured = Boolean(oauthHref);
   const configError = !isOAuthConfigured
     ? "API URL is not configured. Please check your environment configuration."
