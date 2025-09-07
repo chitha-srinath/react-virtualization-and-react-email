@@ -1,3 +1,4 @@
+import { CalendarWithSelect } from "@/Components/calendar-with-select";
 import { useFetchUser } from "../hooks/useAuthQueries";
 import { useLogout } from "../hooks/useAuthQueries";
 
@@ -91,7 +92,12 @@ function Home() {
             </div>
           )}
         </div>
+        <div className="mt-8 text-center w-fit"> 
+        <CalendarWithSelect/>
+        </div>
+       
       </div>
+   
     </div>
   );
 }
