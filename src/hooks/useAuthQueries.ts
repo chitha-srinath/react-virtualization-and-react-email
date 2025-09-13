@@ -13,6 +13,7 @@ import type {
   TokenVerificationResponse,
   RefreshTokenResponse,
 } from "../types/auth";
+import {  useNavigate } from "react-router";
 
 // Hook to initialize auth state on app load
 export const useInitializeAuth = () => {
@@ -164,17 +165,12 @@ export const useLogin = () => {
 
 // Hook for register mutation
 export const useRegister = () => {
-  const setAccessToken = useSetAtom(accessTokenAtom);
-  const setUser = useSetAtom(userAtom);
-  const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
-  const queryClient = useQueryClient();
-
+  const navigate = useNavigate();
   return useMutation({
     mutationFn: async ({
       name,
       email,
-      password,
-      confirmPassword,
+      password
     }: {
       name: string;
       email: string;
@@ -194,12 +190,9 @@ export const useRegister = () => {
       );
       return res.data;
     },
-    onSuccess: (data) => {
-      setAccessToken(data.accessToken);
-      setUser(data.user);
-      setIsAuthenticated(true);
-      // Invalidate and refetch any user-related queries
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+    onSuccess: () => {
+     // ✅ programmatic navigation
+     navigate("/login");
     },
     onError: (error) => {
       console.error("Registration failed:", error);

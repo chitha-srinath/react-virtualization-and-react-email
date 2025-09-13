@@ -2,6 +2,7 @@ export {
   useFetchUser,
   useLogin,
   useLogout,
+  useRegister,
   useInitializeAuth,
   useVerifyToken,
 } from "./useAuthQueries";
