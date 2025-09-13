@@ -181,12 +181,17 @@ export const useRegister = () => {
       password: string;
       confirmPassword: string;
     }) => {
-      const res = await axios.post("/auth/register", {
-        name,
-        email,
-        password,
-        confirmPassword,
-      });
+      const res = await axios.post(
+        `${env?.VITE_API_URL}auth/register`,
+        {
+          name,
+          email,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
       return res.data;
     },
     onSuccess: (data) => {
