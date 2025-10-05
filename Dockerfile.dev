@@ -1,0 +1,24 @@
+# Use specific, updated Node.js Alpine image to avoid vulnerabilities
+FROM node:22.19-alpine3.22
+
+# Add security updates
+RUN apk update && apk upgrade && apk add --no-cache curl
+
+# Set non-root user for security
+USER node
+WORKDIR /app
+
+# Copy package files
+COPY --chown=node:node package*.json ./
+
+# Install all dependencies
+RUN npm ci && npm cache clean --force
+
+# Copy source code
+COPY --chown=node:node . .
+
+# Expose port
+EXPOSE 5173
+
+# Start development server
+CMD ["npm", "run", "dev"]
