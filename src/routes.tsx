@@ -6,7 +6,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import NotFound from "./Pages/NotFound";
 import Dashboard from "./Pages/Dashboard";
-import MainLayout from "./Components/MainLayout";
+import MainLayout from "./Layouts/MainLayout";
 import { AuthRoute, ProtectedRoute } from "./Wrapper/Auth-Wrapper";
 
 import { ROUTES } from "./constants/routes";
