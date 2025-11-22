@@ -5,7 +5,7 @@ import { SiGoogle } from "react-icons/si";
 import { useLogin } from "../hooks/useAuthQueries";
 import { loginSchema, type LoginFormData } from "../utils/validation";
 import { toFormikValidationSchema } from "../utils/zod-formik-adapter";
-import {  env } from "../utils/env";
+import { env } from "../utils/env";
 import { ErrorAlert } from "../Components/ErrorAlert";
 
 function Login() {
@@ -14,7 +14,7 @@ function Login() {
   const [oauthError, setOauthError] = useState<string | null>(null);
 
   const oauthHref = `${env?.VITE_API_URL}auth/google`
-   
+
   const isOAuthConfigured = Boolean(oauthHref);
   const configError = !isOAuthConfigured
     ? "API URL is not configured. Please check your environment configuration."
@@ -87,14 +87,15 @@ function Login() {
 
         {/* Google Sign-in Button */}
         {isOAuthConfigured ? (
-          <a
-            href={oauthHref}
+          <button
+            type="button"
+            onClick={() => window.location.replace(oauthHref)}
             className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             aria-label="Sign in with Google"
           >
             <SiGoogle className="h-5 w-5" aria-hidden="true" />
             Sign in with Google
-          </a>
+          </button>
         ) : (
           <button
             type="button"
@@ -135,11 +136,10 @@ function Login() {
                 type="email"
                 autoComplete="email"
                 required
-                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                  formik.touched.email && formik.errors.email
+                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${formik.touched.email && formik.errors.email
                     ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                     : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:z-10 sm:text-sm`}
+                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:z-10 sm:text-sm`}
                 placeholder="Enter your email address"
                 value={formik.values.email}
                 onChange={formik.handleChange}
@@ -166,11 +166,10 @@ function Login() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                  formik.touched.password && formik.errors.password
+                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${formik.touched.password && formik.errors.password
                     ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                     : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:z-10 sm:text-sm`}
+                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:z-10 sm:text-sm`}
                 placeholder="Enter your password"
                 value={formik.values.password}
                 onChange={formik.handleChange}

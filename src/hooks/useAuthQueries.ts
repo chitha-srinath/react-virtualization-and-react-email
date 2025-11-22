@@ -1,10 +1,11 @@
 // hooks/useAuthQueries.ts
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useAtom } from "jotai";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   accessTokenAtom,
   userAtom,
   isAuthenticatedAtom,
+  authInitializedAtom,
 } from "../atoms/auth.atom";
 import { api } from "../services/api";
 import axios from "axios";
@@ -13,35 +14,67 @@ import type {
   TokenVerificationResponse,
   RefreshTokenResponse,
 } from "../types/auth";
-import {  useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import { getAccessToken } from "../services/auth-client";
 
 // Hook to initialize auth state on app load
 export const useInitializeAuth = () => {
-  const setAccessToken = useSetAtom(accessTokenAtom);
+  const [accessToken, setAccessToken] = useAtom(accessTokenAtom);
   const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
+  const setAuthInitialized = useSetAtom(authInitializedAtom);
+
   return useQuery<RefreshTokenResponse | null>({
     queryKey: ["refresh"],
     queryFn: async () => {
       try {
-        const { data } = await axios.get<RefreshTokenResponse>(
-          `${env?.VITE_API_URL}auth/access-token`,
-          {
-            withCredentials: true,
+        console.log("Initializing auth...");
+
+        // 1. Check if we have a token in storage (atomWithStorage handles this)
+        if (accessToken) {
+          console.log("Found stored token, verifying...");
+          try {
+            // Verify the stored token
+            const { data } = await axios.get<TokenVerificationResponse>(
+              `${env?.VITE_API_URL}auth/verify-access-token`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+
+            if (!data.error) {
+              console.log("Stored token verified successfully");
+              setIsAuthenticated(true);
+              return { token: accessToken, success: true };
+            } else {
+              console.warn("Stored token invalid, attempting refresh...");
+            }
+          } catch (err) {
+            console.warn("Stored token verification failed, attempting refresh...", err);
           }
-        );
-        setAccessToken(data.token);
-        setIsAuthenticated(true); // Set authenticated state when token is retrieved
-        return data;
+        }
+
+        // 2. If no stored token or it's invalid, try to refresh using cookie
+        console.log("Attempting to refresh token from cookie...");
+        const token = await getAccessToken();
+        if (token) {
+          console.log("Auth initialized success via refresh");
+          setIsAuthenticated(true);
+          return { token, success: true };
+        }
+
+        console.log("Auth initialized failed: No valid token found");
+        setAccessToken(null); // Clear invalid stored token if any
+        return null;
       } catch (error) {
-        // If token retrieval fails, ensure auth state is cleared
+        console.error("Auth initialization error:", error);
         setAccessToken(null);
         setIsAuthenticated(false);
-        // Don't throw error in development mode when backend is not available
-        console.warn(
-          "Auth initialization failed (this is normal in development without backend):",
-          error
-        );
         return null;
+      } finally {
+        // Always mark auth as initialized, even on error
+        setAuthInitialized(true);
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -113,8 +146,10 @@ export const useFetchUser = () => {
   return useQuery({
     queryKey: ["user", accessToken],
     queryFn: async () => {
+      console.log("useFetchUser: Fetching user data...", { accessToken });
       if (!accessToken) return null;
       const { data } = await api.get("/auth/user-details");
+      console.log("useFetchUser: Data received", data);
       return data.data;
     },
     enabled: !!accessToken, // Only run query when we have an access token
@@ -123,11 +158,13 @@ export const useFetchUser = () => {
 };
 
 // Hook for login mutation
+// Hook for login mutation
 export const useLogin = () => {
   const setAccessToken = useSetAtom(accessTokenAtom);
   const setUser = useSetAtom(userAtom);
   const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: async ({
@@ -149,12 +186,16 @@ export const useLogin = () => {
       );
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setAccessToken(data.data.token);
       setUser(data.user);
       setIsAuthenticated(true);
+
       // Invalidate and refetch any user-related queries
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
+
+      // Navigate to dashboard
+      navigate("/dashboard");
     },
     onError: (error) => {
       console.error("Login failed:", error);
@@ -191,8 +232,8 @@ export const useRegister = () => {
       return res.data;
     },
     onSuccess: () => {
-     // ✅ programmatic navigation
-     navigate("/login");
+      // ✅ programmatic navigation
+      navigate("/login");
     },
     onError: (error) => {
       console.error("Registration failed:", error);

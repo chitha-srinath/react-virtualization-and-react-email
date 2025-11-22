@@ -9,17 +9,36 @@ import { env } from "../utils/env";
 
 export async function getAccessToken() {
   try {
-    const { data } = await axios.get<{ token: string }>(
+    console.log("getAccessToken: Fetching token...");
+    const { data } = await axios.get<any>(
       `${env?.VITE_API_URL}auth/access-token`,
       {
         withCredentials: true,
       }
     );
 
-    store.set(accessTokenAtom, data.token);
-    return data.token;
+    console.log("getAccessToken: Raw response data:", JSON.stringify(data, null, 2));
+
+    // Handle various possible response structures
+    // @ts-ignore - data type is generic
+    const token = data.token || data.data?.token || data.data;
+
+    console.log("getAccessToken: Extracted token:", token);
+
+    if (token && typeof token === "string") {
+      store.set(accessTokenAtom, token);
+      store.set(isAuthenticatedAtom, true); // Explicitly set authenticated
+      return token;
+    }
+
+    console.warn("getAccessToken: No valid token found in response. Structure keys:", Object.keys(data));
+    return null;
   } catch (error) {
-    console.error(error);
+    console.error("getAccessToken: Error details:", error);
+    if (axios.isAxiosError(error)) {
+      console.error("getAccessToken: Axios error response:", error.response?.data);
+      console.error("getAccessToken: Axios error status:", error.response?.status);
+    }
     store.set(accessTokenAtom, null);
     store.set(isAuthenticatedAtom, false);
     store.set(userAtom, null);
