@@ -6,6 +6,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import NotFound from "./Pages/NotFound";
 import Dashboard from "./Pages/Dashboard";
+import MainLayout from "./Components/MainLayout";
 import { AuthRoute, ProtectedRoute } from "./Wrapper/Auth-Wrapper";
 
 import { ROUTES } from "./constants/routes";
@@ -15,8 +16,11 @@ const AppRoutes: React.FC = () => {
     <Routes>
       {/* Protected Routes - All routes under this group require authentication */}
       <Route element={<ProtectedRoute />}>
-        <Route index element={<Home />} />
-        <Route path={ROUTES.ABOUT} element={<About />} />
+        <Route element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route path={ROUTES.ABOUT} element={<About />} />
+          <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+        </Route>
       </Route>
 
       {/* Public Routes - Redirect if already authenticated */}
@@ -26,7 +30,7 @@ const AppRoutes: React.FC = () => {
       </Route>
 
       {/* OAuth callback route - Public, no auth check needed */}
-      <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+
 
       {/* 404 - Catch all unmatched routes */}
       <Route path="*" element={<NotFound />} />
