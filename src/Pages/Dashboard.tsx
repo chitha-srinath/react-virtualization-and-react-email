@@ -1,11 +1,5 @@
-import { useSearchParams, useNavigate } from "react-router";
-import { useAtomValue } from "jotai";
-import { useEffect } from "react";
-import { isAuthenticatedAtom, authInitializedAtom } from "../atoms/auth.atom";
-import { ROUTES } from "../constants/routes";
-import { useVerifyToken, useFetchUser } from "../hooks";
+import { useFetchUser } from "../hooks";
 import { CalendarWithSelect } from "@/Components/calendar-with-select";
-import { getAccessToken } from "../services/auth-client";
 import {
   User,
   Calendar as CalendarIcon,
@@ -13,75 +7,15 @@ import {
 } from "lucide-react";
 
 function Dashboard() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const isAuthenticated = useAtomValue(isAuthenticatedAtom);
-  const authInitialized = useAtomValue(authInitializedAtom);
-  const token = searchParams.get("token");
-
-  // Verify token if present
-  const { data: tokenVerification, isLoading: isVerifying } = useVerifyToken(token);
-
   // Fetch user data for the dashboard view
   const { data: user, isLoading: isLoadingUser, error: userError } = useFetchUser();
 
-  useEffect(() => {
-    const handleVerification = async () => {
-      // If there is a token in URL (Google Login flow)
-      if (token) {
-        if (tokenVerification !== undefined) {
-          if (tokenVerification?.error) {
-            // Token verification failed - try to refresh token using cookie
-            const newToken = await getAccessToken();
-
-            if (newToken) {
-              // Refresh successful - remove query param and stay
-              const newParams = new URLSearchParams(searchParams);
-              newParams.delete("token");
-              setSearchParams(newParams, { replace: true });
-            } else {
-              // Refresh failed - redirect to login
-              navigate(ROUTES.LOGIN, { replace: true });
-            }
-          } else {
-            // Token verified successfully - remove query param but stay on page
-            const newParams = new URLSearchParams(searchParams);
-            newParams.delete("token");
-            setSearchParams(newParams, { replace: true });
-          }
-        }
-      } else {
-        // No token in URL - check current auth state
-        // If not authenticated, try to refresh token (Email Login persistence flow)
-        if (authInitialized && !isAuthenticated) {
-          const newToken = await getAccessToken();
-
-          if (newToken) {
-            // Verify the new token and get user details
-            try {
-              // We can rely on useFetchUser to get user details since accessTokenAtom is set by getAccessToken
-              // But per requirements, we'll ensure verification passes
-              // The useFetchUser hook will automatically run once accessToken is set
-            } catch (error) {
-              navigate(ROUTES.LOGIN, { replace: true });
-            }
-          } else {
-            navigate(ROUTES.LOGIN, { replace: true });
-          }
-        }
-      }
-    };
-
-    handleVerification();
-  }, [token, tokenVerification, isAuthenticated, authInitialized, navigate, searchParams, setSearchParams]);
-
-  // Show loading state while verifying token or fetching user
-  if (isVerifying || (isAuthenticated && isLoadingUser)) {
+  if (isLoadingUser) {
     return (
       <div className="h-full flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <div className="text-gray-600">{isVerifying ? "Verifying token..." : "Loading dashboard..."}</div>
+          <div className="text-gray-600">Loading dashboard...</div>
         </div>
       </div>
     );
