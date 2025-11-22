@@ -21,14 +21,6 @@ function Dashboard() {
   const { data: user, isLoading: isLoadingUser, error: userError } = useFetchUser();
   const logoutMutation = useLogout();
 
-  console.log("Dashboard Render:", {
-    isAuthenticated,
-    hasToken: !!token,
-    user,
-    isLoadingUser,
-    userError
-  });
-
   const handleLogout = () => {
     logoutMutation.mutate();
   };
@@ -39,7 +31,6 @@ function Dashboard() {
         if (tokenVerification !== undefined) {
           if (tokenVerification?.error) {
             // Token verification failed - try to refresh token using cookie
-            console.warn("Token verification failed, attempting refresh...");
             const newToken = await getAccessToken();
 
             if (newToken) {
@@ -49,7 +40,6 @@ function Dashboard() {
               setSearchParams(newParams, { replace: true });
             } else {
               // Refresh failed - redirect to login
-              console.warn("Token refresh failed, redirecting to login");
               navigate(ROUTES.LOGIN, { replace: true });
             }
           } else {
@@ -63,22 +53,18 @@ function Dashboard() {
         // No token in URL - check current auth state
         // If not authenticated, try to refresh token (Email Login persistence flow)
         if (authInitialized && !isAuthenticated) {
-          console.log("Dashboard: Not authenticated, attempting to restore session...");
           const newToken = await getAccessToken();
 
           if (newToken) {
-            console.log("Dashboard: Session restored, verifying token...");
             // Verify the new token and get user details
             try {
               // We can rely on useFetchUser to get user details since accessTokenAtom is set by getAccessToken
               // But per requirements, we'll ensure verification passes
               // The useFetchUser hook will automatically run once accessToken is set
             } catch (error) {
-              console.error("Dashboard: Token verification failed", error);
               navigate(ROUTES.LOGIN, { replace: true });
             }
           } else {
-            console.log("Dashboard: Session restore failed, redirecting to login");
             navigate(ROUTES.LOGIN, { replace: true });
           }
         }

@@ -21,7 +21,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // If there's an error, still render children (auth state is cleared in the hook)
   if (error) {
-    console.warn("Auth initialization failed:", error);
+    // Auth initialization failed
   }
 
   return <>{children}</>;

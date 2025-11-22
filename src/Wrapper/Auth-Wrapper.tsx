@@ -6,11 +6,8 @@ export const ProtectedRoute = () => {
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
   const authInitialized = useAtomValue(authInitializedAtom);
 
-  console.log("ProtectedRoute check:", { authInitialized, isAuthenticated });
-
   // Show loading while auth is initializing to prevent premature redirect
   if (!authInitialized) {
-    console.log("ProtectedRoute: Waiting for auth initialization...");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -23,17 +20,14 @@ export const ProtectedRoute = () => {
 
   // Now we know auth has initialized, check if authenticated
   if (!isAuthenticated) {
-    console.log("ProtectedRoute: Auth initialized but not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
 
-  console.log("ProtectedRoute: Authenticated, rendering protected content");
   return <Outlet />;
 };
 
 export const AuthRoute = () => {
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
-  console.log("AuthRoute check:", { isAuthenticated });
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }

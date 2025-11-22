@@ -27,11 +27,9 @@ export const useInitializeAuth = () => {
     queryKey: ["refresh"],
     queryFn: async () => {
       try {
-        console.log("Initializing auth...");
 
         // 1. Check if we have a token in storage (atomWithStorage handles this)
         if (accessToken) {
-          console.log("Found stored token, verifying...");
           try {
             // Verify the stored token
             const { data } = await axios.get<TokenVerificationResponse>(
@@ -44,31 +42,26 @@ export const useInitializeAuth = () => {
             );
 
             if (!data.error) {
-              console.log("Stored token verified successfully");
               setIsAuthenticated(true);
               return { token: accessToken, success: true };
             } else {
-              console.warn("Stored token invalid, attempting refresh...");
+              // Stored token invalid, attempting refresh...
             }
           } catch (err) {
-            console.warn("Stored token verification failed, attempting refresh...", err);
+            // Stored token verification failed, attempting refresh...
           }
         }
 
         // 2. If no stored token or it's invalid, try to refresh using cookie
-        console.log("Attempting to refresh token from cookie...");
         const token = await getAccessToken();
         if (token) {
-          console.log("Auth initialized success via refresh");
           setIsAuthenticated(true);
           return { token, success: true };
         }
 
-        console.log("Auth initialized failed: No valid token found");
         setAccessToken(null); // Clear invalid stored token if any
         return null;
       } catch (error) {
-        console.error("Auth initialization error:", error);
         setAccessToken(null);
         setIsAuthenticated(false);
         return null;
@@ -124,10 +117,6 @@ export const useVerifyToken = (token: string | null) => {
         return data;
       } catch (error) {
         // In development mode without backend, treat as invalid token
-        console.warn(
-          "Token verification failed (backend not available):",
-          error
-        );
         return { error: true, message: "Backend not available" };
       }
     },
@@ -146,10 +135,8 @@ export const useFetchUser = () => {
   return useQuery({
     queryKey: ["user", accessToken],
     queryFn: async () => {
-      console.log("useFetchUser: Fetching user data...", { accessToken });
       if (!accessToken) return null;
       const { data } = await api.get("/auth/user-details");
-      console.log("useFetchUser: Data received", data);
       return data.data;
     },
     enabled: !!accessToken, // Only run query when we have an access token
@@ -197,8 +184,7 @@ export const useLogin = () => {
       // Navigate to dashboard
       navigate("/dashboard");
     },
-    onError: (error) => {
-      console.error("Login failed:", error);
+    onError: () => {
       // Handle login error (you might want to show a toast or error message)
     },
   });
@@ -235,8 +221,7 @@ export const useRegister = () => {
       // ✅ programmatic navigation
       navigate("/login");
     },
-    onError: (error) => {
-      console.error("Registration failed:", error);
+    onError: () => {
       // Handle registration error (you might want to show a toast or error message)
     },
   });
@@ -256,7 +241,6 @@ export const useLogout = () => {
         await api.get("/auth/logout", { withCredentials: true });
       } catch (error) {
         // Even if logout API fails, we still want to clear local state
-        console.warn("Logout API call failed:", error);
       }
     },
     onSuccess: () => {

@@ -36,7 +36,7 @@ function Login() {
       : "An error occurred during Google Sign-In. Please try again.";
     setOauthError(message);
     if (!isKnown && import.meta.env.DEV) {
-      console.warn("Unknown oauth_failed:", oauthFailed);
+      // Unknown oauth_failed
     }
     setSearchParams(
       (prev: URLSearchParams) => {
@@ -137,8 +137,8 @@ function Login() {
                 autoComplete="email"
                 required
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${formik.touched.email && formik.errors.email
-                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                  ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                   } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:z-10 sm:text-sm`}
                 placeholder="Enter your email address"
                 value={formik.values.email}
@@ -167,8 +167,8 @@ function Login() {
                 autoComplete="current-password"
                 required
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${formik.touched.password && formik.errors.password
-                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                  ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                   } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:z-10 sm:text-sm`}
                 placeholder="Enter your password"
                 value={formik.values.password}
